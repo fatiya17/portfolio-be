@@ -9,7 +9,6 @@ const ProjectSchema = new mongoose.Schema({
     type: String,
     required: true
   },
- 
   category: {
     type: String,
     required: true
@@ -21,14 +20,35 @@ const ProjectSchema = new mongoose.Schema({
   problemSolved: {
     type: String
   },
-  features: {
+  
+  projectType: {
+    type: String, 
+    default: "Individual"
+  },
+  duration: {
     type: String 
   },
-  // Link & Visual
+  year: {
+    type: String
+  },
+  teamSize: {
+    type: Number,
+    default: 1
+  },
+  
+  // link & visual
   imageUrl: {
     type: String, 
     default: "https://via.placeholder.com/300" 
   },
+  // --- gallery for multi image & caption ---
+  gallery: [
+    {
+      url: String,
+      caption: String
+    }
+  ],
+  
   githubLink: {
     type: String
   },
