@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const cloudinary = require('cloudinary').v2; 
 
 // import models
 const Project = require('./models/Project');
@@ -13,6 +14,13 @@ const Skill = require('./models/Skill');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// cloudinary config
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
+});
+
 // middleware
 app.use(cors());
 app.use(express.json({ limit: '50mb' })); 
@@ -20,6 +28,24 @@ app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 app.get('/', (req, res) => {
   res.send('🦉 Backend for Fatiya’s Portfolio Is Live!');
 });
+
+// helper function to upload image
+const uploadToCloudinary = async (imageString, folder) => {
+  // if not base64 or empty, return original string (it might be a url already)
+  if (!imageString || !imageString.startsWith('data:image')) {
+    return imageString; 
+  }
+  try {
+    const uploadResponse = await cloudinary.uploader.upload(imageString, {
+      folder: `portfolio/${folder}`,
+      resource_type: "image"
+    });
+    return uploadResponse.secure_url;
+  } catch (error) {
+    console.error("Cloudinary Upload Error:", error);
+    throw new Error("Image upload failed");
+  }
+};
 
 // connect db
 mongoose.connect(process.env.MONGO_URI)
@@ -45,19 +71,54 @@ app.get('/api/projects', async (req, res) => {
     res.json(data);
   } catch (err) { res.status(500).json({ message: err.message }); }
 });
+
 app.post('/api/projects', async (req, res) => {
   try {
-    const newItem = new Project(req.body);
+    const body = req.body;
+    
+    // upload main image
+    if (body.imageUrl) {
+      body.imageUrl = await uploadToCloudinary(body.imageUrl, 'projects');
+    }
+    
+    // upload gallery images
+    if (body.gallery && Array.isArray(body.gallery)) {
+      for (let i = 0; i < body.gallery.length; i++) {
+        if (body.gallery[i].url) {
+           body.gallery[i].url = await uploadToCloudinary(body.gallery[i].url, 'projects');
+        }
+      }
+    }
+
+    const newItem = new Project(body);
     await newItem.save();
     res.status(201).json(newItem);
   } catch (err) { res.status(400).json({ message: err.message }); }
 });
+
 app.put('/api/projects/:id', async (req, res) => {
   try {
-    const updated = await Project.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    const body = req.body;
+    
+    // upload main image if changed
+    if (body.imageUrl) {
+      body.imageUrl = await uploadToCloudinary(body.imageUrl, 'projects');
+    }
+    
+    // upload gallery images if changed
+    if (body.gallery && Array.isArray(body.gallery)) {
+      for (let i = 0; i < body.gallery.length; i++) {
+        if (body.gallery[i].url) {
+           body.gallery[i].url = await uploadToCloudinary(body.gallery[i].url, 'projects');
+        }
+      }
+    }
+
+    const updated = await Project.findByIdAndUpdate(req.params.id, body, { new: true });
     res.json(updated);
   } catch (err) { res.status(400).json({ message: err.message }); }
 });
+
 app.delete('/api/projects/:id', async (req, res) => {
   try {
     await Project.findByIdAndDelete(req.params.id);
@@ -126,19 +187,32 @@ app.get('/api/certificates', async (req, res) => {
     res.json(data);
   } catch (err) { res.status(500).json({ message: err.message }); }
 });
+
 app.post('/api/certificates', async (req, res) => {
   try {
-    const newItem = new Certificate(req.body);
+    const body = req.body;
+    // upload image if exists
+    if (body.imageUrl) {
+      body.imageUrl = await uploadToCloudinary(body.imageUrl, 'certificates');
+    }
+    const newItem = new Certificate(body);
     await newItem.save();
     res.status(201).json(newItem);
   } catch (err) { res.status(400).json({ message: err.message }); }
 });
+
 app.put('/api/certificates/:id', async (req, res) => {
   try {
-    const updated = await Certificate.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    const body = req.body;
+    // upload image if changed
+    if (body.imageUrl) {
+      body.imageUrl = await uploadToCloudinary(body.imageUrl, 'certificates');
+    }
+    const updated = await Certificate.findByIdAndUpdate(req.params.id, body, { new: true });
     res.json(updated);
   } catch (err) { res.status(400).json({ message: err.message }); }
 });
+
 app.delete('/api/certificates/:id', async (req, res) => {
   try {
     await Certificate.findByIdAndDelete(req.params.id);
