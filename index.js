@@ -25,6 +25,53 @@ cloudinary.config({
 app.use(cors());
 app.use(express.json({ limit: '50mb' })); 
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+
+// --- ⚡ database connection setup for vercel ⚡ ---
+let cached = global.mongoose;
+
+if (!cached) {
+  cached = global.mongoose = { conn: null, promise: null };
+}
+
+async function connectDB() {
+  if (cached.conn) {
+    return cached.conn;
+  }
+
+  if (!cached.promise) {
+    const opts = {
+      bufferCommands: false, // fail fast if not connected
+      serverSelectionTimeoutMS: 5000,
+    };
+
+    cached.promise = mongoose.connect(process.env.MONGO_URI, opts).then((mongoose) => {
+      console.log('✅ MongoDB Connected (New Connection)');
+      return mongoose;
+    });
+  }
+
+  try {
+    cached.conn = await cached.promise;
+  } catch (e) {
+    cached.promise = null;
+    throw e;
+  }
+
+  return cached.conn;
+}
+
+// middleware: ensure db connected before handling request
+app.use(async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (error) {
+    console.error("❌ Database Error:", error);
+    res.status(500).json({ message: "Database Connection Failed" });
+  }
+});
+// --------------------------------------------------
+
 app.get('/', (req, res) => {
   res.send('🦉 Backend for Fatiya’s Portfolio Is Live!');
 });
@@ -46,11 +93,6 @@ const uploadToCloudinary = async (imageString, folder) => {
     throw new Error("Image upload failed");
   }
 };
-
-// connect db
-mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log('✅ MongoDB Connected'))
-  .catch(err => console.error('❌ MongoDB Connection Error:', err));
 
 // --- 🔐 auth route ---
 app.post('/api/login', (req, res) => {
