@@ -10,6 +10,7 @@ const Experience = require('./models/Experience');
 const Education = require('./models/Education');
 const Certificate = require('./models/Certificate');
 const Skill = require('./models/Skill');
+const Visitor = require('./models/Visitor');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -101,6 +102,77 @@ app.post('/api/login', (req, res) => {
     res.json({ success: true, token: 'admin-token-secret-123' });
   } else {
     res.status(401).json({ success: false, message: 'Invalid Password' });
+  }
+});
+
+// --- analytics routes ---
+
+// track visitor
+app.post('/api/track', async (req, res) => {
+  try {
+    const { country, city, device, platform, browser } = req.body;
+    // get ip from request header (vercel/proxies support)
+    const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+    
+    // simple check to prevent spamming db on hot reload (optional)
+    // in production, you might want to debounce this on the client side
+    
+    await Visitor.create({
+      ip,
+      country: country || 'Unknown',
+      city: city || 'Unknown',
+      device,
+      platform,
+      browser
+    });
+
+    res.status(200).json({ success: true });
+  } catch (err) {
+    console.error('tracking error', err);
+    // don't block the client if tracking fails
+    res.status(200).json({ success: false }); 
+  }
+});
+
+// get analytics data
+app.get('/api/analytics', async (req, res) => {
+  try {
+    // 1. total visits
+    const totalVisits = await Visitor.countDocuments();
+    
+    // 2. unique visitors (distinct ips)
+    const uniqueVisitors = (await Visitor.distinct('ip')).length;
+    
+    // 3. visits by country (top 5)
+    const topCountries = await Visitor.aggregate([
+      { $group: { _id: "$country", count: { $sum: 1 } } },
+      { $sort: { count: -1 } },
+      { $limit: 5 }
+    ]);
+    
+    // 4. visits last 7 days (for chart)
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    
+    const visitsByDate = await Visitor.aggregate([
+      { $match: { timestamp: { $gte: sevenDaysAgo } } },
+      { 
+        $group: { 
+          _id: { $dateToString: { format: "%Y-%m-%d", date: "$timestamp" } },
+          count: { $sum: 1 }
+        }
+      },
+      { $sort: { _id: 1 } }
+    ]);
+
+    res.json({
+      totalVisits,
+      uniqueVisitors,
+      topCountries,
+      visitsByDate
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 });
 
