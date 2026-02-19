@@ -316,13 +316,7 @@ app.get("/api/education", async (req, res) => {
 });
 app.post("/api/education", async (req, res) => {
   try {
-    console.log(`POST /api/education body size: ${JSON.stringify(req.body).length}`);
-    const body = req.body;
-    // upload image if exists
-    if (body.imageUrl) {
-      body.imageUrl = await uploadToCloudinary(body.imageUrl, "education");
-    }
-    const newItem = new Education(body);
+    const newItem = new Education(req.body);
     await newItem.save();
     res.status(201).json(newItem);
   } catch (err) {
@@ -331,14 +325,7 @@ app.post("/api/education", async (req, res) => {
 });
 app.put("/api/education/:id", async (req, res) => {
   try {
-    console.log(`PUT /api/education/${req.params.id} body size: ${JSON.stringify(req.body).length}`);
-    const body = req.body;
-    console.log("Updating Education ID:", req.params.id, "Image present:", !!body.imageUrl); // Debug log
-    // upload image if changed
-    if (body.imageUrl) {
-      body.imageUrl = await uploadToCloudinary(body.imageUrl, "education");
-    }
-    const updated = await Education.findByIdAndUpdate(req.params.id, body, {
+    const updated = await Education.findByIdAndUpdate(req.params.id, req.body, {
       new: true,
     });
     res.json(updated);
