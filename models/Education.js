@@ -5,7 +5,8 @@ const educationSchema = new mongoose.Schema({
   school: String,
   year: String,
   grade: String,
-  desc: String
+  desc: String,
+  imageUrl: String
 });
 
 module.exports = mongoose.model('Education', educationSchema);

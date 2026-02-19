@@ -316,20 +316,40 @@ app.get("/api/education", async (req, res) => {
 });
 app.post("/api/education", async (req, res) => {
   try {
-    const newItem = new Education(req.body);
+    const body = req.body;
+    console.log("POST /api/education body.imageUrl length:", body.imageUrl ? body.imageUrl.length : "null");
+
+    // upload image if exists
+    if (body.imageUrl) {
+      body.imageUrl = await uploadToCloudinary(body.imageUrl, "education");
+      console.log("Cloudinary Upload Result:", body.imageUrl);
+    }
+    const newItem = new Education(body);
     await newItem.save();
+    console.log("Saved Item:", newItem);
     res.status(201).json(newItem);
   } catch (err) {
+    console.error("POST Education Error:", err);
     res.status(400).json({ message: err.message });
   }
 });
 app.put("/api/education/:id", async (req, res) => {
   try {
-    const updated = await Education.findByIdAndUpdate(req.params.id, req.body, {
+    const body = req.body;
+    console.log("PUT /api/education/:id body.imageUrl length:", body.imageUrl ? body.imageUrl.length : "null");
+
+    // upload image if changed
+    if (body.imageUrl) {
+      body.imageUrl = await uploadToCloudinary(body.imageUrl, "education");
+      console.log("Cloudinary Upload Result:", body.imageUrl);
+    }
+    const updated = await Education.findByIdAndUpdate(req.params.id, body, {
       new: true,
     });
+    console.log("Updated Item:", updated);
     res.json(updated);
   } catch (err) {
+    console.error("PUT Education Error:", err);
     res.status(400).json({ message: err.message });
   }
 });
