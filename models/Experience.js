@@ -7,6 +7,7 @@ const experienceSchema = new mongoose.Schema({
   period: String,
   type: String,
   description: String,
+  link: String,
   skills: [String] 
 });
 
