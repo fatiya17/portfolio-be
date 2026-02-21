@@ -5,7 +5,7 @@ const educationSchema = new mongoose.Schema({
   school: String,
   year: String,
   grade: String,
-  desc: String,
+  link: String,
   imageUrl: String
 });
 
