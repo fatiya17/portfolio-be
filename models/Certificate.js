@@ -30,6 +30,10 @@ const CertificateSchema = new mongoose.Schema({
     type: String,
     default: "https://via.placeholder.com/300"
   },
+  category: {
+    type: String,
+    default: "Others"
+  },
   createdAt: {
     type: Date,
     default: Date.now
