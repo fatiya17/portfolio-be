@@ -269,4 +269,4 @@ Set all environment variables in your [Vercel project settings](https://vercel.c
 
 ## 📝 License
 
-This project is open source and available under the [ISC License](./package.json).
+This project is open source and available under the [ISC License](./LICENSE).
