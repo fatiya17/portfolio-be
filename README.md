@@ -1,6 +1,6 @@
 # 🦉 Portfolio Backend API
 
-A RESTful backend API powering [Fatiya's Portfolio](https://github.com/fatiya17) — built with **Node.js**, **Express**, and **MongoDB**. Deployed on **Vercel** with **Cloudinary** for image storage.
+A RESTful backend API powering [Fatiya's Portfolio](https://github.com/fatiya17/portfolio-spotify) — built with **Node.js**, **Express**, and **MongoDB**. Deployed on **Vercel** with **Cloudinary** for image storage.
 
 ---
 
