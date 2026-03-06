@@ -4,71 +4,20 @@
 
 ---
 
-## [v1.5.0] — Schema & Field Enhancements
+## [v1.0.0] — Initial Release
 
-### ✨ New Features
-- **Certificate category field** — Certificates now include a `category` field (defaults to `"Others"`) enabling filtering and grouping in the frontend.
-- **Experience link field** — Experience entries now support an optional `link` field for referencing company profiles or project pages.
-- **Education link field** — Education entries now support an optional `link` field for institutional websites or credential verification pages.
+### ✨ Features
 
----
+#### 🔐 Admin Authentication
+- `POST /api/login` — Password-protected endpoint that validates the `ADMIN_PASSWORD` environment variable and returns an admin token.
 
-## [v1.4.0] — Stability, Deployment & Image Support
-
-### ✨ New Features
-- **Education image upload** — Education entries now support `imageUrl` with automatic Base64 → Cloudinary upload on create and update.
-
-### 🔧 Fixes & Improvements
-- Fixed Express routing error for catch-all `/.*/` wildcard route causing issues on Vercel.
-- Fixed Vercel deployment error that occurred after the education image update.
-- Removed debug `console.log` messages from production code.
-- Updated server configuration to support deployment on Google Cloud Run in addition to Vercel.
-
----
-
-## [v1.3.0] — Visitor Analytics
-
-### ✨ New Features
-- **Visitor tracking** (`POST /api/track`) — Records visitor events including IP address, country, city, device type, platform (OS), and browser.
-- **Analytics dashboard** (`GET /api/analytics`) — Returns aggregated analytics:
+#### 📊 Visitor Analytics
+- `POST /api/track` — Records visitor events including IP address, country, city, device type, platform (OS), and browser.
+- `GET /api/analytics` — Returns aggregated analytics:
   - Total visits
   - Unique visitors (by distinct IP)
   - Top 5 countries by visit count
   - Daily visit counts for the last 7 days (for charting)
-- Added `Visitor` Mongoose model with `ip`, `country`, `city`, `device`, `platform`, `browser`, and `timestamp` fields.
-
----
-
-## [v1.2.0] — Cloudinary Image Integration & Vercel Optimisation
-
-### ✨ New Features
-- **Cloudinary image upload** — All image fields (`imageUrl`, gallery `url`) are now automatically uploaded to Cloudinary when a Base64 data URI is provided. Existing URLs are passed through unchanged.
-- **Image migration script** (`migrate_images.js`) — Utility script to retroactively upload existing Base64-encoded images in MongoDB to Cloudinary and replace them with secure URLs.
-- **Database seeding script** (`seed.js`) — Utility script to populate the database with sample data for Projects, Experience, Education, Certificates, and Skills.
-
-### 🔧 Fixes & Improvements
-- Serverless MongoDB connection caching for Vercel — avoids creating a new connection on every function invocation, reducing cold-start latency.
-- Added 50 MB request body size limit (`express.json` and `urlencoded`) to support large Base64 image payloads.
-
----
-
-## [v1.1.0] — Authentication, Gallery & Vercel Deployment
-
-### ✨ New Features
-- **Admin authentication** (`POST /api/login`) — Password-protected endpoint that validates the `ADMIN_PASSWORD` environment variable and returns an admin token.
-- **Project gallery support** — Projects now support a `gallery` array of `{ url, caption }` objects for multi-image showcasing.
-- **Certificate image upload** — Certificates now include an `imageUrl` field uploaded to Cloudinary.
-- **Vercel deployment configuration** (`vercel.json`) — Serverless deployment support with proper rewrites.
-- **Live health-check route** (`GET /`) — Returns a confirmation message that the backend is running.
-- **CORS configuration** — Wide-open CORS with credentials support for frontend integration.
-
----
-
-## [v1.0.0] — Initial Release
-
-### ✨ New Features
-
-Full RESTful CRUD API for all portfolio content types:
 
 #### 📂 Projects (`/api/projects`)
 - `GET` — List all projects (newest first)
@@ -94,6 +43,11 @@ Full RESTful CRUD API for all portfolio content types:
 - Full CRUD operations
 - **Schema:** `category`, `color`, `bg`, `iconName`, `items[{name, iconKey, color}]`
 
+### 🖼 Image Handling
+- **Cloudinary integration** — All image fields (`imageUrl`, gallery `url`) are automatically uploaded to Cloudinary when a Base64 data URI is provided. Existing URLs are passed through unchanged.
+- **Image migration script** (`migrate_images.js`) — Utility script to upload existing Base64-encoded images in MongoDB to Cloudinary and replace them with secure URLs.
+- **50 MB request body limit** — Supports large Base64 image payloads.
+
 ### 🛠 Tech Stack
 | Layer       | Technology             |
 |-------------|------------------------|
@@ -102,6 +56,13 @@ Full RESTful CRUD API for all portfolio content types:
 | Database    | MongoDB (Mongoose v9)  |
 | Images      | Cloudinary v2          |
 | Deployment  | Vercel (Serverless)    |
+
+### ⚙️ Infrastructure
+- **Vercel deployment** (`vercel.json`) — Serverless deployment configuration with proper rewrites.
+- **MongoDB connection caching** — Avoids creating a new connection on every serverless function invocation, reducing cold-start latency.
+- **CORS** — Enabled with credentials support for frontend integration.
+- **Database seeding script** (`seed.js`) — Utility script to populate the database with sample data for all resources.
+- **Health-check route** (`GET /`) — Returns a confirmation message that the backend is running.
 
 ---
 
